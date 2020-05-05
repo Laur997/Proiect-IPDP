@@ -3,39 +3,102 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <netdb.h> 
-#include <string.h> 
-#define PORT 8080 
-using namespace std;
+#include <arpa/inet.h> 
+#include <string.h>
+#include "Utils.h" 
+#define PORT 8080
+const char RETURN=10;
 void func(int sockfd) 
 { 
-    char buff[MAX]; 
+    char buff[4096]; 
     int n; 
     for (;;) { 
         bzero(buff, sizeof(buff)); 
-        printf("Enter the message : "); 
         n = 0; 
         while ((buff[n++] = getchar()) != '\n'); 
         
         send(sockfd, buff, sizeof(buff),0); 
         bzero(buff, sizeof(buff)); 
         recv(sockfd, buff, sizeof(buff),0); 
-        printf("From Server : %s", buff); 
+        printf( "%s", buff); 
         if ((strncmp(buff, "exit", 4)) == 0) { 
             printf("Client Exit...\n"); 
             break; 
         } 
     } 
 } 
-  
+
+void introd_password(int sockfd)
+{   Utils utils;
+    char buff[4096];
+    char confirmation[5]; 
+    bzero(buff, sizeof(buff)); 
+    int n = 0;
+    std::cout << "Introduce password:" << std::endl;
+    while ((buff[n++] = utils.getch()) != RETURN)
+    {
+        std::cout<<"*";
+    }
+    send(sockfd, buff, sizeof(buff),0); 
+    bzero(buff, sizeof(buff));
+    bzero(confirmation, sizeof(confirmation));
+    recv(sockfd,confirmation, 5, 0);
+    if(std::string(confirmation) == "YES")
+    {
+        std::cout << "\nClient connected..."<<std::endl;
+    }
+    else
+    {
+        
+        if(std::string(confirmation) == "NOT")
+        {
+            std::cout << "\nIncorrect password.....Try again!"<<std::endl;
+            introd_password(sockfd);
+        }
+    }
+
+
+    
+
+}
+
+void introd_username(int sockfd)
+{   char buff[4096];
+    char confirmation[5];
+    bzero(buff, sizeof(buff)); 
+    int n = 0;
+    std::cout << "Introduce username:" << std::endl; 
+    while ((buff[n++] = getchar()) != '\n');
+    send(sockfd, buff, sizeof(buff),0); 
+    bzero(buff, sizeof(buff));
+
+    recv(sockfd,confirmation, 4, 0);
+    if(std::string(confirmation) == "YES")
+    {
+        introd_password(sockfd);
+    }
+    else
+    {   std::cout <<"This user does'n exist.....Try again!"<<std::endl;
+        introd_username(sockfd);
+
+    }
+
+
+}
+
+
+
+
+
+
 int main() 
 { 
-    
+    Utils utils;
     //Create socket 
     int server = socket(AF_INET, SOCK_STREAM, 0);
     if(server == -1)
     {
-        cerr << "Can't create socket" << endl;
+        std::cerr << "Can't create socket" << std::endl;
         return -1;
     }
     
@@ -47,14 +110,17 @@ int main()
     //Connect to the server
     if(connect(server, (sockaddr*)&hint,sizeof(hint)) != 0)
     {
-        cerr << "Connection with the server failed" << endl;
+        std::cerr << "Connection with the server failed" << std::endl;
     }
     else
     {
-        cout<< "Connected to the server ....." << endl;
+        std::cout<< "Connected to the server ....." << std::endl;
     }
 
-    // function for chat 
+//Autentification
+    introd_username(server);
+    //introd_password(server);
+    
     func(server); 
   
     // close the socket 
