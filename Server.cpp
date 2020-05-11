@@ -8,12 +8,11 @@
 #include <string>
 #include <fstream>
 #include "Login.h"
+#include "User.h"
 #define PORT 8080  
-using namespace std;
- 
 
 
-std::string eraseLineTerminator(std::string s)
+std::string eraseLineTerminator(std::string s) // remove "\n" from the end of the string
 {   std::string toErase = "\n";
     int poz = s.find(toErase);
     if(poz != std::string::npos)
@@ -29,7 +28,7 @@ int main()
     int listening = socket(AF_INET, SOCK_STREAM, 0);
     if (listening == -1)
     {
-        cerr << "Can't create a socket! Quitting" << endl;
+        std::cerr << "Can't create a socket! Quitting" << std::endl;
         return -1;
     }
  
@@ -41,7 +40,7 @@ int main()
  
     bind(listening, (sockaddr*)&hint, sizeof(hint));
  
-    // Tell Winsock the socket is for listening
+    //this socket is for listening
     listen(listening, SOMAXCONN);
  
     // Wait for a connection
@@ -58,12 +57,12 @@ int main()
  
     if (getnameinfo((sockaddr*)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0) == 0)
     {
-        cout << host << " connected on port " << service << endl;
+        std::cout << host << " connected on port " << service << std::endl;
     }
     else
     {
         inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
-        cout << host << " connected on port " << ntohs(client.sin_port) << endl;
+        std::cout << host << " connected on port " << ntohs(client.sin_port) << std::endl;
     }
  
     // Close listening socket
@@ -102,7 +101,7 @@ int main()
         confirmation = login.confirm_password(username, password);
         tries++;
     }
-    if(tries > 3)
+    if(tries >= 3)
     {
         close(clientSocket);
     }
@@ -111,32 +110,41 @@ int main()
         send(clientSocket,"YES", sizeof("YES"),0);
     }
 
-
-  
+    //Initiate user
+    User user1;
+    user1.setUsername(username); // our user will take the received username
+    std::string message; ;
 
  // While loop: accept and echo message back to client    
     while (true)
     {
-        memset(buf, 0, 4096);
+        memset(buf, '\0', 4096);
  
         // Wait for client to send data
         int bytesReceived = recv(clientSocket, buf, 4096, 0);
         if (bytesReceived == -1)
         {
-            cerr << "Error in recv(). Quitting" << endl;
+            std::cerr << "Error in recv(). Quitting" << std::endl;
             break;
         }
  
         if (bytesReceived == 0)
         {
-            cout << "Client disconnected " << endl;
+            std::cout << "Client disconnected " << std::endl;
             break;
         }
  
-        cout << string(buf) << endl;
+        std::cout << std::string(buf) << std::endl;
        
         // Echo message back to client
-        send(clientSocket, buf, bytesReceived+1, 0);
+        message = user1.getUsername() + ": " + std::string(buf); // Add "Name: " + to the message
+        strcpy(buf, message.c_str()); // convert to char array
+        std::cout << sizeof(buf);
+        //int *sizeOfMessage;
+        //*sizeOfMessage = int(sizeof(buf));
+        //send(clientSocket,sizeOfMessage, 8,0); 
+        //std::cout << *sizeOfMessage;
+        send(clientSocket, buf, 4096, 0);
     }
  
     // Close the socket

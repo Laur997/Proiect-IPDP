@@ -11,16 +11,18 @@ const char RETURN=10;
 void func(int sockfd) 
 { 
     char buff[4096]; 
-    int n; 
+    int n;
+    int *sizeOfMessage; 
     for (;;) { 
         bzero(buff, sizeof(buff)); 
         n = 0; 
-        while ((buff[n++] = getchar()) != '\n'); 
-        
-        send(sockfd, buff, sizeof(buff),0); 
-        bzero(buff, sizeof(buff)); 
-        recv(sockfd, buff, sizeof(buff),0); 
-        printf( "%s", buff); 
+        while ((buff[n++] = getchar()) != '\n'); //introd. the message from the keybord
+        //recv(sockfd, sizeOfMessage, 8,0);
+        //std::cout << *sizeOfMessage;
+        send(sockfd, buff, sizeof(buff),0); //send the message to the server
+        bzero(buff, sizeof(buff)); //empty the buffer
+        recv(sockfd, buff, 4096,0);  // receive a message from the server
+        printf( "%s", buff); //
         if ((strncmp(buff, "exit", 4)) == 0) { 
             printf("Client Exit...\n"); 
             break; 
@@ -119,7 +121,6 @@ int main()
 
 //Autentification
     introd_username(server);
-    //introd_password(server);
     
     func(server); 
   

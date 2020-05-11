@@ -1,15 +1,13 @@
 #include <string>
-class User
-{
-private:
-  std::string username;
-public:
-  void setName(std::string name)
+#include "User.h"
+
+
+
+  void User::setUsername(std::string name)
   {
     username = name;
   }
-  std::string getName()
+  std::string User::getUsername()
   {
     return username;
   }
-};
